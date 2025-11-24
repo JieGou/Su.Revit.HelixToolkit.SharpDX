@@ -103,6 +103,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <None Remove=".gitignore" />
+	  <None Remove="LICENSE" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RvtVersion).0.0" PrivateAssets="All"> </PackageReference>
