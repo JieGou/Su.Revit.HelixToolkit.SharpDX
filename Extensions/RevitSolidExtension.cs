@@ -9,7 +9,7 @@ namespace Su.Revit.HelixToolkit.SharpDX.Extensions
     /// <summary>
     /// RevitMeshBuilderExtension - SharpDX 版本
     /// </summary>
-    internal static class RevitMeshBuilderExtension
+    internal static class RevitSolidExtension
     {
         public static Color4 DefaultColor = Colors.Gray.ToColor4();
 

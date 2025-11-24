@@ -1,8 +1,42 @@
-﻿# 🚀 HelixViewport3DBuilder User Guide
+﻿# 🚀 Su.Revit.HelixToolkit.SharpDX User Guide
+
+## 🌐 Project Repository
+
+**GitHub**: https://github.com/ViewSuSu/Su.Revit.HelixToolkit.SharpDX  
+**Gitee**: https://gitee.com/SususuChang/su.-revit.-helix-toolkit.-sharp-dx
+
+---
+
+## 📦 Installation
+
+### Via NuGet (Recommended)
+
+```bash
+# Package Manager
+Install-Package Su.Revit.HelixToolkit.SharpDX
+
+# .NET CLI
+dotnet add package Su.Revit.HelixToolkit.SharpDX
+```
+
+### Compatibility
+
+- ✅ **Supported Versions**: Revit 2011 - Revit 2026
+- ✅ **.NET Framework**: 4.8+
+- ✅ **Dependencies**: HelixToolkit.Wpf.SharpDX, Revit API
+
+---
 
 ## 📖 Introduction
 
-HelixViewport3DBuilder is a specialized tool class for displaying and interacting with 3D models in Revit plugins. Developed based on HelixToolkit.Wpf.SharpDX, it provides simple and easy-to-use APIs to create feature-rich 3D viewport windows.
+Su.Revit.HelixToolkit.SharpDX is a high-performance 3D visualization toolkit specifically designed for Revit plugin development. Built on HelixToolkit.Wpf.SharpDX, it provides simple and easy-to-use APIs to create feature-rich 3D viewport windows in Revit plugins.
+
+**Core Features**:
+- 🚀 **High-Performance Rendering**: Index optimization for Solid triangular faces, capable of handling massive triangular face data in Solid models
+- 🎯 **Complete Interaction**: Supports mouse hover highlighting, click selection, multi-selection, rotation, zoom, pan, and other complete interaction functions
+- 📐 **Coordinate System Adaptation**: Automatic handling of coordinate system conversion between Revit and Helix for seamless integration
+- 🎨 **Material System**: Supports multiple rendering methods including native Revit materials, custom colors, and texture materials
+- ⚡ **Memory Optimization**: Efficient geometric data management and memory release mechanisms
 
 ---
 
@@ -172,6 +206,69 @@ builder.SetClickHighlightEnabled(true);
 
 ---
 
+## 🎨 GeometryObjectOptions Usage Guide
+
+### 📝 Basic Configuration
+
+`GeometryObjectOptions` is used to configure how geometry objects are rendered:
+
+#### Using Revit Material
+
+```csharp
+var options = new GeometryObjectOptions(
+    geometryObject,    // 📐 Revit geometry object
+    revitMaterial      // 🎨 Revit material (optional)
+);
+```
+
+#### Using Custom Color
+
+```csharp
+var options = new GeometryObjectOptions(
+    geometryObject,           // 📐 Revit geometry object
+    Colors.Blue,              // 🔵 Custom color
+    0.8f                      // 💧 Transparency (0-1)
+);
+```
+
+#### Using Texture Material
+
+```csharp
+var options = new GeometryObjectOptions(
+    geometryObject,           // 📐 Revit geometry object
+    textureStream,            // 🖼️ Texture stream
+    Colors.White,             // ⚪ Emissive color
+    1.0f                      // 💧 Transparency
+);
+```
+
+### ⚙️ Rendering Parameter Configuration
+
+```csharp
+var options = new GeometryObjectOptions(geometryObject, material)
+{
+    LevelOfDetail = 0.8,                              // 🎯 Detail level (0-1)
+    MinAngleInTriangle = 0,                           // 📐 Minimum triangle angle
+    MinExternalAngleBetweenTriangles = Math.PI / 4,   // 📏 Minimum external angle between triangles
+    IsDrawSolidEdges = true,                          // 📏 Draw outline edges
+    SolidEdgeThickness = 2f,                          // 🖊️ Edge thickness
+    SolidEdgeSmoothness = 10f                         // ✨ Edge smoothness
+};
+```
+
+### 🔧 Parameter Description
+
+| Parameter | Description | Default | Impact |
+|-----------|-------------|---------|--------|
+| `LevelOfDetail` | Rendering detail level | 0.5 | Higher values create denser meshes, better precision but higher performance cost |
+| `MinAngleInTriangle` | Minimum angle in triangle | 0 | Controls smoothness during mesh generation |
+| `MinExternalAngleBetweenTriangles` | Minimum external angle between adjacent triangles | 2π | Determines smooth transition between surfaces |
+| `IsDrawSolidEdges` | Whether to draw outline edges | true | Display boundary lines |
+| `SolidEdgeThickness` | Edge line thickness | 2f | Line width in pixels |
+| `SolidEdgeSmoothness` | Edge line smoothness | 10f | Higher values create smoother edges |
+
+---
+
 ## 💡 Usage Tips
 
 ### 🚀 Performance Optimization
@@ -179,6 +276,8 @@ builder.SetClickHighlightEnabled(true);
 - ✅ Use `EnableSwapChainRendering` to improve rendering performance
 - ✅ Set appropriate `FXAALevel` to balance quality and performance
 - ✅ Call `Clear()` promptly to release resources
+- ✅ Adjust `LevelOfDetail` based on requirements to avoid unnecessary details
+- ✅ Utilize Solid triangular face index optimization to handle massive data
 
 ### 🎯 Best Practices
 
@@ -186,6 +285,21 @@ builder.SetClickHighlightEnabled(true);
 2. **🔄 Real-time Updates**: Support dynamic add/remove of geometry objects
 3. **🎮 User Friendly**: Provide intuitive mouse interaction feedback
 4. **🎨 Visual Consistency**: Maintain visual style similar to Revit
+5. **⚡ Performance Balance**: Adjust rendering parameters based on scene complexity
+6. **💾 Memory Management**: Timely cleanup of unused geometry objects
+
+### 🔄 Scene Management
+
+```csharp
+// 🧹 Clear scene
+builder.Clear();
+
+// 📦 Re-add objects
+builder.Add(newGeometryObjects);
+
+// 🎯 Reset camera
+builder.SetCamera(newView);
+```
 
 ---
 
@@ -210,6 +324,67 @@ builder.OnModelSelected += (sender, args) =>
 };
 ```
 
+### ❓ How to optimize performance for complex models?
+```csharp
+var options = new GeometryObjectOptions(geometryObject, material)
+{
+    LevelOfDetail = 0.3,      // 🎯 Reduce detail level
+    IsDrawSolidEdges = false  // 📏 Disable edge drawing
+};
+```
+
+### ❓ How to handle material transparency?
+```csharp
+// Method 1: Use color transparency
+var options = new GeometryObjectOptions(geometryObject, Colors.Red, 0.5f);
+
+// Method 2: Use Revit material transparency
+var material = document.GetElement(materialId) as Autodesk.Revit.DB.Material;
+var options = new GeometryObjectOptions(geometryObject, material);
+```
+
+### ❓ How to handle Solid models with massive triangular faces?
+```csharp
+// The library has built-in triangular face index optimization, automatically handling massive data
+// Just create GeometryObjectOptions normally
+var options = new GeometryObjectOptions(largeSolidModel, material);
+```
+
 ---
 
-**🎉 Start using HelixViewport3DBuilder to create outstanding 3D visualization experiences!**
+## 📞 Technical Support
+
+If you encounter issues during use, please check:
+
+- ✅ Revit document object is correctly passed
+- ✅ Geometry object collection contains valid data
+- ✅ Viewport control is properly added to WPF visual tree
+- ✅ Event handlers are correctly registered and unregistered
+- ✅ Rendering parameters are within reasonable ranges
+- ✅ Memory usage is normal, call Clear() promptly to release resources
+
+### 🔍 Debugging Tips
+
+```csharp
+// Check selected models
+var selected = builder.GetSelectedModels();
+Console.WriteLine($"Selected {selected.Count()} models");
+
+// Check geometry object mapping
+var geometryObjects = builder.GetSelectedGeometryObjects();
+foreach (var geoObj in geometryObjects)
+{
+    Console.WriteLine($"Geometry object type: {geoObj.GetType()}");
+}
+```
+
+### 📚 Additional Resources
+
+- 📖 **Full Source Code**: Visit the GitHub or Gitee repository above
+- 🐛 **Issue Reporting**: Welcome to submit issues in the repository
+- 💡 **Feature Suggestions**: Welcome to submit Pull Requests or feature suggestions
+- 📋 **Release Notes**: Check the repository's Release page for latest version information
+
+---
+
+**🎉 Start using Su.Revit.HelixToolkit.SharpDX to create outstanding 3D visualization experiences!**
