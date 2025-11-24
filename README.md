@@ -21,7 +21,7 @@ dotnet add package Su.Revit.HelixToolkit.SharpDX
 
 ### 兼容性
 
-- ✅ **支持版本**: Revit 2011 - Revit 2026
+- ✅ **支持版本**: Revit 2013 - Revit 2026
 - ✅ **.NET Framework**: 4.8+
 - ✅ **依赖项**: HelixToolkit.Wpf.SharpDX, Revit API
 
