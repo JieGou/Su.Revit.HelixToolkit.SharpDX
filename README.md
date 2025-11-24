@@ -5,6 +5,10 @@
 **GitHub**: https://github.com/ViewSuSu/Su.Revit.HelixToolkit.SharpDX  
 **Gitee**: https://gitee.com/SususuChang/su.-revit.-helix-toolkit.-sharp-dx
 
+## 🎬 演示动画
+
+![功能演示](HD.gif)
+
 ---
 
 ## 📦 安装方式
