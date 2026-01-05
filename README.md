@@ -1,3 +1,5 @@
+ [English](README.en.md) | [中文](README.md)
+
 ![Revit Support](https://img.shields.io/badge/Revit-2013~2026-green)
 ![Platform](https://img.shields.io/badge/Platform-WPF%2BSharpDX-orange)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
