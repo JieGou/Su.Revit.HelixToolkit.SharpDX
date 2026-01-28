@@ -109,6 +109,7 @@
 		<PackageReference Include="Revit_All_Main_Versions_API_x64" Version="$(RvtVersion).0.0" PrivateAssets="All"> </PackageReference>
 		<PackageReference Include="HelixToolkit.Wpf.SharpDX" Version="3.1.1" />
 		<PackageReference Include="ricaun.Revit.UI" Version="*" Condition="$([System.String]::Copy('$(Configuration)').Contains('D'))" PrivateAssets="All" />
+		<PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
 	</ItemGroup>
 
 	<ItemGroup>
