@@ -597,6 +597,17 @@ namespace Su.Revit.HelixToolkit.SharpDX
 
             if (findResult && model != null && model is MaterialGeometryModel3D hitModel)
             {
+                // 获取对应的 GeometryObjectOptions
+                GeometryObjectOptions geometryObjectOptions = null;
+                if (_modelToGeometryObjectMap.TryGetValue(hitModel, out var geoObjX))
+                {
+                    geometryObjectOptions = geoObjX;
+                }
+
+                // 检查是否允许点击高亮
+                if (geometryObjectOptions != null && !geometryObjectOptions.IsClickHighlightEnabled)
+                    return;
+
                 // 清除悬停高亮
                 ClearHoverHighlight();
 
@@ -661,6 +672,21 @@ namespace Su.Revit.HelixToolkit.SharpDX
 
             if (findResult && model != null && model is MaterialGeometryModel3D hoveredModel)
             {
+                // 获取对应的 GeometryObjectOptions
+                GeometryObjectOptions geometryObjectOptions = null;
+                if (_modelToGeometryObjectMap.TryGetValue(hoveredModel, out var geoObj))
+                {
+                    geometryObjectOptions = geoObj;
+                }
+
+                // 检查是否允许悬停高亮
+                if (geometryObjectOptions != null && !geometryObjectOptions.IsHoverHighlightEnabled)
+                {
+                    viewport.Cursor = null;
+                    ClearHoverHighlight();
+                    return;
+                }
+                
                 // 设置手型光标
                 viewport.Cursor = Cursors.Hand;
 

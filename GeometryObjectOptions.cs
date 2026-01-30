@@ -127,6 +127,16 @@ namespace Su.Revit.HelixToolkit.SharpDX
         public float SolidEdgeSmoothness { get; set; } = 10f;
 
         /// <summary>
+        /// 是否允许鼠标悬停高亮。
+        /// </summary>
+        public bool IsHoverHighlightEnabled { get; set; } = true;
+
+        /// <summary>
+        /// 是否允许鼠标点击高亮。
+        /// </summary>
+        public bool IsClickHighlightEnabled { get; set; } = true;
+
+        /// <summary>
         /// 要渲染的 Revit 几何对象。
         /// </summary>
         public GeometryObject GeometryObject { get; }
