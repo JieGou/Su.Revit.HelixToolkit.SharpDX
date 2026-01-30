@@ -22,13 +22,6 @@ namespace Su.Revit.HelixToolkit.SharpDX
     /// </summary>
     public sealed class HelixViewport3DBuilder
     {
-        /// <summary>
-        /// 坐标系转换矩阵：交换 Y 和 Z 轴。
-        /// </summary>
-        private static readonly MatrixTransform3D swapTransform = new MatrixTransform3D(
-            new Matrix3D(1, 0, 0, 0, 0, 0, -1, 0, 0, 1, 0, 0, 0, 0, 0, 1)
-        );
-
         private readonly Document document;
 
         /// <summary>
@@ -131,6 +124,7 @@ namespace Su.Revit.HelixToolkit.SharpDX
             // 创建 Helix Viewport 对象
             this.Viewport = new Viewport3DX
             {
+                ModelUpDirection = new Vector3D(0, 0, 1), // 设置 Z 轴为向上方向
                 ZoomExtentsWhenLoaded = true, // 载入时自动缩放视图
                 ShowViewCube = true, // 显示右上角视图立方体
                 IsViewCubeEdgeClicksEnabled = true, // 启用视图立方体边缘点击
@@ -155,10 +149,10 @@ namespace Su.Revit.HelixToolkit.SharpDX
             // 设置视图立方体的六个面（前后左右上下）的文字与颜色
             Viewport.ViewCubeTexture = BitmapExtensions.CreateViewBoxTexture(
                 effectsManager,
+                "右",
+                "左",
                 "前",
                 "后",
-                "左",
-                "右",
                 "上",
                 "下",
                 Colors.Red.ToColor4(),
@@ -196,13 +190,23 @@ namespace Su.Revit.HelixToolkit.SharpDX
             Viewport.MouseLeftButtonDown += OnViewportMouseLeftButtonDown;
             Viewport.FormMouseMove += OnViewportMouseMove;
             Viewport.MouseLeave += OnViewportMouseLeave;
+            Viewport.ShowCoordinateSystem = true;
             Add(geometryObjects);
+
+            // 这里添加自定义快捷键绑定，简化为 KeyBinding 的属性写法
+            Viewport.InputBindings.Add(new KeyBinding() { Command = ViewportCommands.RightView, Key = Key.B });
+            Viewport.InputBindings.Add(new KeyBinding() { Command = ViewportCommands.LeftView, Key = Key.F });
+            Viewport.InputBindings.Add(new KeyBinding() { Command = ViewportCommands.TopView, Key = Key.U });
+            Viewport.InputBindings.Add(new KeyBinding() { Command = ViewportCommands.BottomView, Key = Key.D });
+            Viewport.InputBindings.Add(new KeyBinding() { Command = ViewportCommands.BackView, Key = Key.L });
+            Viewport.InputBindings.Add(new KeyBinding() { Command = ViewportCommands.FrontView, Key = Key.R });
         }
 
         /// <summary>
         /// 初始化视口构建器。
         /// </summary>
         /// <param name="document">Revit 文档对象。</param>
+        /// <param name="geometryObjects">三维对象集合</param>
         /// <param name="visualOptions">视口视觉选项，可选。</param>
         /// <returns>新的 <see cref="HelixViewport3DBuilder"/> 实例。</returns>
         public static HelixViewport3DBuilder Init(
@@ -242,7 +246,6 @@ namespace Su.Revit.HelixToolkit.SharpDX
         {
             if (model != null)
             {
-                model.Transform = swapTransform; // 坐标系转换
                 model.ToolTip = "123";
                 Viewport.Items.Add(model);
 
@@ -299,33 +302,25 @@ namespace Su.Revit.HelixToolkit.SharpDX
         {
             if (view != null)
             {
-                // 坐标转换（Revit → WPF）
-                var axis = new Vector3D(
+                // 直接使用 XYZ 对应
+                var lookDirection = new Vector3D(
+                    -view.ViewDirection.X,
+                    -view.ViewDirection.Y,
+                    -view.ViewDirection.Z
+                );
+                var upDirection = new Vector3D(
                     view.UpDirection.X,
-                    view.UpDirection.Z,
-                    -view.UpDirection.Y
+                    view.UpDirection.Y,
+                    view.UpDirection.Z
                 );
-
-                // 绕 UpDirection 旋转 180 度，保证朝向一致
-                AxisAngleRotation3D rotation = new AxisAngleRotation3D(axis, 180);
-                RotateTransform3D transform = new RotateTransform3D(rotation);
-
-                // 计算视图方向与上方向
-                var rotatedLookDirection = transform.Transform(
-                    new Vector3D(view.ViewDirection.X, view.ViewDirection.Z, -view.ViewDirection.Y)
-                );
-                var rotatedUpDirection = transform.Transform(
-                    new Vector3D(view.UpDirection.X, view.UpDirection.Z, -view.UpDirection.Y)
-                );
-                rotatedLookDirection.Normalize();
-                rotatedUpDirection.Normalize();
+                var position = new Point3D(view.Origin.X, view.Origin.Y, view.Origin.Z);
 
                 // 创建正交相机
                 var camera = new OrthographicCamera()
                 {
-                    Position = new Point3D(view.Origin.X, view.Origin.Z, -view.Origin.Y),
-                    LookDirection = rotatedLookDirection,
-                    UpDirection = rotatedUpDirection,
+                    Position = position,
+                    LookDirection = lookDirection,
+                    UpDirection = upDirection,
                     NearPlaneDistance = 0.00001,
                     FarPlaneDistance = double.MaxValue,
                 };
@@ -345,28 +340,18 @@ namespace Su.Revit.HelixToolkit.SharpDX
         /// <param name="upDirection">相机上方向。</param>
         public HelixViewport3DBuilder SetCamera(XYZ position, XYZ viewDirection, XYZ upDirection)
         {
-            // 坐标转换：Revit(Y-up, Z-forward) → WPF(Z-up, Y-forward)
-            var transformedPosition = new Point3D(position.X, position.Z, -position.Y);
-            var transformedViewDir = new Vector3D(
-                viewDirection.X,
-                viewDirection.Z,
-                -viewDirection.Y
-            );
-            var transformedUpDir = new Vector3D(upDirection.X, upDirection.Z, -upDirection.Y);
-
-            // 绕上方向旋转 180 度（保证方向一致）
-            var rotation = new AxisAngleRotation3D(transformedUpDir, 180);
-            var transform = new RotateTransform3D(rotation);
-
-            var rotatedLookDirection = transform.Transform(transformedViewDir);
-            var rotatedUpDirection = transform.Transform(transformedUpDir);
-
-            // 创建正交相机
+            // 直接 XYZ 对应
             var camera = new OrthographicCamera
             {
-                Position = transformedPosition,
-                LookDirection = rotatedLookDirection,
-                UpDirection = rotatedUpDirection,
+                Position = new Point3D(position.X, position.Y, position.Z),
+                LookDirection = new Vector3D(
+                    viewDirection.X,
+                    viewDirection.Y,
+                    viewDirection.Z
+                ),
+                UpDirection = new Vector3D(upDirection.X, upDirection.Y, upDirection.Z),
+                NearPlaneDistance = 0.00001,
+                FarPlaneDistance = double.MaxValue,
             };
 
             Viewport.Camera = camera;
@@ -686,7 +671,7 @@ namespace Su.Revit.HelixToolkit.SharpDX
                     ClearHoverHighlight();
                     return;
                 }
-                
+
                 // 设置手型光标
                 viewport.Cursor = Cursors.Hand;
 
